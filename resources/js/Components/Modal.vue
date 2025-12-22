@@ -26,7 +26,7 @@
                     <div
                         v-show="show"
                         class="mb-6 bg-white rounded-lg overflow-hidden shadow-xl transform transition-all sm:w-full sm:mx-auto"
-                        :class="maxWidthClass"
+                        :class="[maxWidthClass, maxHeightClass]"
                     >
                         <slot v-if="show" />
                     </div>
@@ -95,6 +95,11 @@ const maxWidthClass = computed(() => {
         lg: 'sm:max-w-lg',
         xl: 'sm:max-w-xl',
         '2xl': 'sm:max-w-2xl',
+        full: 'sm:max-w-[calc(100vw-4rem)]',
     }[props.maxWidth];
+});
+
+const maxHeightClass = computed(() => {
+    return props.maxWidth === 'full' ? 'sm:max-h-[calc(100vh-3rem)] sm:h-[calc(100vh-3rem)]' : '';
 });
 </script>

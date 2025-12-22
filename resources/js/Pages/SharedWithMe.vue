@@ -23,7 +23,7 @@
                 </thead>
                 <tbody>
                 <tr v-for="file of allFiles.data" :key="file.id"
-                    @click="$event => toggleFileSelect(file) "
+                    @click="$event => handleFileClick(file, $event)"
                     class="border-b transition duration-300 ease-in-out hover:bg-blue-100 cursor-pointer"
                     :class="(selected[file.id] || allSelected ) ? 'bg-blue-50' : 'bg-white'">
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-[30px] max-w-[30px] pr-0">
@@ -46,6 +46,7 @@
             </div>
             <div ref="loadMoreIntersect"></div>
         </div>
+        <FilePreviewModal v-model="showPreviewModal" :file="previewFile" />
     </AuthenticatedLayout>
 </template>
 
@@ -63,6 +64,8 @@ import DeleteFilesButton from "@/Components/app/DeleteFilesButton.vue";
 import DownloadFilesButton from "@/Components/app/DownloadFilesButton.vue";
 import RestoreFilesButton from "@/Components/app/RestoreFilesButton.vue";
 import DeleteForeverButton from "@/Components/app/DeleteForeverButton.vue";
+import FilePreviewModal from "@/Components/app/FilePreviewModal.vue";
+import {isImage, isVideo} from "@/Helper/file-helper.js";
 
 // Uses
 
@@ -70,6 +73,8 @@ import DeleteForeverButton from "@/Components/app/DeleteForeverButton.vue";
 const allSelected = ref(false);
 const selected = ref({});
 const loadMoreIntersect = ref(null)
+const showPreviewModal = ref(false);
+const previewFile = ref(null);
 
 const allFiles = ref({
     data: props.files.data,
@@ -106,6 +111,24 @@ function onSelectAllChange() {
     allFiles.value.data.forEach(f => {
         selected.value[f.id] = allSelected.value
     })
+}
+
+function handleFileClick(file, event) {
+    // If clicking on checkbox, just toggle selection
+    if (event.target.closest('input[type="checkbox"]') || event.target.closest('svg')) {
+        toggleFileSelect(file);
+        return;
+    }
+
+    // If it's an image or video, open preview modal
+    if (!file.is_folder && (isImage(file) || isVideo(file))) {
+        previewFile.value = file;
+        showPreviewModal.value = true;
+        return;
+    }
+
+    // Otherwise, toggle selection
+    toggleFileSelect(file);
 }
 
 function toggleFileSelect(file) {

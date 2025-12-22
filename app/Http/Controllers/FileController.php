@@ -491,6 +491,71 @@ class FileController extends Controller
         ];
     }
 
+    public function preview(FilesActionRequest $request)
+    {
+        $data = $request->validated();
+        $ids = $data['ids'] ?? [];
+
+        if (empty($ids) || count($ids) !== 1) {
+            return [
+                'message' => 'Please select a single file to preview'
+            ];
+        }
+
+        $file = File::find($ids[0]);
+
+        if (!$file) {
+            return [
+                'message' => 'File not found'
+            ];
+        }
+
+        if ($file->is_folder) {
+            return [
+                'message' => 'Folders cannot be previewed'
+            ];
+        }
+
+        // Check if file is an image or video
+        $isImage = str_starts_with($file->mime, 'image/');
+        $isVideo = str_starts_with($file->mime, 'video/');
+
+        if (!$isImage && !$isVideo) {
+            return [
+                'message' => 'Only images and videos can be previewed'
+            ];
+        }
+
+        // Check if user has access to this file
+        if ($file->created_by !== Auth::id()) {
+            // Check if file is shared with user
+            $isShared = FileShare::where('file_id', $file->id)
+                ->where('user_id', Auth::id())
+                ->exists();
+
+            if (!$isShared) {
+                return [
+                    'message' => 'You do not have access to this file'
+                ];
+            }
+        }
+
+        $dest = pathinfo($file->storage_path, PATHINFO_BASENAME);
+        if ($file->uploaded_on_cloud) {
+            $content = Storage::get($file->storage_path);
+        } else {
+            $content = Storage::disk('local')->get($file->storage_path);
+        }
+
+        $success = Storage::disk('public')->put($dest, $content);
+        $url = asset(Storage::disk('public')->url($dest));
+
+        return [
+            'url' => $url,
+            'filename' => $file->name
+        ];
+    }
+
     private function getDownloadUrl(array $ids, $zipName)
     {
         if (count($ids) === 1) {
