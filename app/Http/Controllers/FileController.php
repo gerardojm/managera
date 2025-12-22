@@ -8,6 +8,7 @@ use App\Http\Requests\ShareFilesRequest;
 use App\Http\Requests\StoreFileRequest;
 use App\Http\Requests\StoreFolderRequest;
 use App\Http\Requests\TrashFilesRequest;
+use App\Http\Requests\UpdateFileDescriptionRequest;
 use App\Http\Resources\FileResource;
 use App\Jobs\UploadFileToCloudJob;
 use App\Mail\ShareFilesMail;
@@ -592,5 +593,30 @@ class FileController extends Controller
         }
 
         return [$url, $filename];
+    }
+
+    public function updateDescription(UpdateFileDescriptionRequest $request)
+    {
+        $data = $request->validated();
+        
+        $file = File::find($data['id']);
+        
+        if (!$file) {
+            return [
+                'message' => 'File not found'
+            ];
+        }
+
+        // Check if user owns the file
+        if ($file->created_by !== Auth::id()) {
+            return [
+                'message' => 'You do not have permission to update this file'
+            ];
+        }
+
+        $file->description = $data['description'] ?? null;
+        $file->save();
+
+        return new FileResource($file);
     }
 }

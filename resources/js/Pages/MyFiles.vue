@@ -112,7 +112,7 @@
             </div>
             <div ref="loadMoreIntersect"></div>
         </div>
-        <FilePreviewModal v-model="showPreviewModal" :file="previewFile" />
+        <FilePreviewModal v-model="showPreviewModal" :file="previewFile" @fileUpdated="handleFileUpdated" />
     </AuthenticatedLayout>
 </template>
 
@@ -258,6 +258,18 @@ function showOnlyFavourites() {
         params.delete('favourites')
     }
     router.get(window.location.pathname+'?'+params.toString())
+}
+
+function handleFileUpdated(updatedFile) {
+    // Update the file in the local files array
+    const fileIndex = allFiles.value.data.findIndex(f => f.id === updatedFile.id);
+    if (fileIndex !== -1) {
+        allFiles.value.data[fileIndex].description = updatedFile.description;
+    }
+    // Also update previewFile if it's the same file
+    if (previewFile.value && previewFile.value.id === updatedFile.id) {
+        previewFile.value.description = updatedFile.description;
+    }
 }
 
 // Hooks
