@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Constants\RouteConstants;
 use App\Http\Controllers\Controller;
 use App\Models\File;
 use App\Models\User;
-use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -53,6 +53,6 @@ class RegisteredUserController extends Controller
         $file->is_folder = 1;
         $file->makeRoot()->save();
 
-        return redirect(RouteServiceProvider::HOME);
+        return redirect(RouteConstants::HOME);
     }
 }
